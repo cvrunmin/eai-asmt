@@ -95,6 +95,7 @@ if __name__ == "__main__":
             results = processor.post_process_object_detection(outputs=outputs, target_sizes=target_sizes, threshold=score_threshold)
             boxes = list(sorted(zip(results[0]['scores'].cpu(), results[0]['boxes'].cpu()), key=lambda x: x[0], reverse=True))
             nms_boxes = []
+            # Non Max Suppression
             while len(boxes) > 0:
                 cur_box = boxes.pop(0)
                 nms_boxes.append(cur_box)
@@ -105,8 +106,10 @@ if __name__ == "__main__":
                 for bad_box in bad_boxes:
                     boxes.remove(bad_box)
                 del bad_boxes
+            # draw boxes
             for score, xy in nms_boxes:
                 cv.rectangle(frame, xy[0:2].int().numpy(), xy[2:4].int().numpy(), (255,0,0), 3)
+            # extend image for texts
             frame2 = cv.copyMakeBorder(frame, 0, 50, 0, 0, cv.BORDER_CONSTANT, value = (0,0,0))
             cur_count = len(nms_boxes)
             if last_count == -1:
@@ -137,4 +140,5 @@ if __name__ == "__main__":
                 break
             time.sleep(1 / fps)
             if cv.getWindowProperty('frame', cv.WND_PROP_VISIBLE) < 1:
+                # window closed. break
                 break
